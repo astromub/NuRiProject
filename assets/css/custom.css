@@ -1,6 +1,23 @@
-/* Increase main content width */
+/* Wider layout for blog content */
 .wrapper {
   max-width: 1200px; /* Default is 800px */
   width: 90%;
   margin: 0 auto;
+}
+
+/* Optional: increase font size for readability */
+body {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Optional: style headers */
+h1, h2, h3 {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Optional: add spacing between sections */
+section {
+  margin-bottom: 2rem;
 }
