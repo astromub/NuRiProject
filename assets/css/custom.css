@@ -1,0 +1,6 @@
+/* Increase main content width */
+.wrapper {
+  max-width: 1200px; /* Default is 800px */
+  width: 90%;
+  margin: 0 auto;
+}
