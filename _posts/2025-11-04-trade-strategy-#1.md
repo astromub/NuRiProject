@@ -1,10 +1,13 @@
 ---
-title: "Trade Strategy #1 AO+SMA"
+title: "Trade Strategy #1: AO + SMA"
 date: 2025-11-04
 layout: post
-categories: [blog]
-tags: [intro, welcome]
+categories: [strategy, trading]
+tags: [AO, SMA, binary, momentum, expiry]
 ---
+
+![Awesome Oscillator Strategy](https://thesecretmindset.com/wp-content/uploads/2020/06/Awesome-Oscillator-Trading-Strategy.png)
+
 # 📊 Trade Strategy #1: AO + SMA  
 **Date:** Nov 4, 2025  
 
@@ -67,7 +70,6 @@ Look for AO **“twin peaks” pattern** below zero for added confirmation.
 - Use **fixed trade size** or apply **anti-Martingale** (increase after wins)  
 - Limit to **3 consecutive trades per signal**  
 - Avoid trading during **news releases** or **low liquidity**  
-- Use **ASTRONuRi Trade Tracker** to manage your trades effectively  
+- Use [**ASTRONuRi Trade Tracker**](https://astromub.github.io/NuRiProject/trade-tracker.html) to manage your trades effectively  
 
 ---
-
