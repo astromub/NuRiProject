@@ -14,14 +14,9 @@ Simple Moving Average (SMA): Identifies the prevailing trend direction.
 1-Minute Candlestick Chart: For signal clarity.
 10-Second Expiry: For ultra-short-term execution.
 
-📈 Chart Setup
-
-Timeframe: 1-minute candles
-
-Expiry: 10 seconds
+📈 Chart Setup : Timeframe of 1-minute candles and an expiry of 10 seconds
 
 Indicators:
-
 Awesome Oscillator (AO): Set to 100 (longer smoothing for clearer momentum)
 Simple Moving Average (SMA): Set to 20 or 50 (depending on volatility)
 
