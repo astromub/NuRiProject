@@ -2,4 +2,8 @@ theme: minima
 title: ASTROMUB LIMITED
 description: Learn strategies and track trades
 author: AstroNuRi
-
+sass:
+  style: compressed
+  
+include:
+  - assets/css/custom.css
