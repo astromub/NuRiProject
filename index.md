@@ -1,6 +1,6 @@
 ---
 layout: home
-title: Binary Trading Blog
+title: Home
 ---
 
 # Home
