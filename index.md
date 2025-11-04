@@ -1,6 +1,6 @@
 ---
 layout: home
-title: Homme
+title: Home
 ---
 
 # Home
