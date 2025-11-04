@@ -9,3 +9,6 @@ title: Binary Trading Blog
   <a href="strategy.html">Trade Strategy</a> |
   <a href="trade-tracker.html">Trade Tracker</a>
 </nav>
+
+# Home
+This is your home page .. no visual on this page yet.. but this is the inidcation that its working 
