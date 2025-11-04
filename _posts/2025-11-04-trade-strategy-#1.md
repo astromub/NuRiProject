@@ -24,11 +24,13 @@ Indicators:
 
 Awesome Oscillator (AO): Set to 100 (longer smoothing for clearer momentum)
 Simple Moving Average (SMA): Set to 20 or 50 (depending on volatility)
+
 🟢 Enter a BUY a trade when:
 
 Price is above the SMA (trend is bullish)
 AO histogram is green and rising, or crosses above the zero line
 Recent candle closes bullish (confirmation)
+
 💡 Optional filter: Wait for AO to form a “saucer” pattern (two red bars followed by a green bar) above zero for stronger momentum confirmation.
 
 🔴 Entry a SELL a trade when
@@ -36,15 +38,15 @@ Recent candle closes bullish (confirmation)
 Price is below the SMA (trend is bearish)
 AO histogram is red and falling, or crosses below the zero line
 Recent candle closes bearish
+
 💡 Optional filter: Look for AO “twin peaks” pattern below zero for added confirmation.
 
-⏱ Timing Tips
-
+⏱ Timing Tips: 
 Trade only during high-volume sessions (e.g., London or New York open)
 Avoid ranging markets—this strategy thrives in clear trends
 Use 1–2 second delay after signal confirmation to avoid false triggers
-🛡 Risk Management
 
+🛡 Risk Management: 
 Use fixed trade size or apply anti-Martingale (increase after wins)
 Limit to 3 consecutive trades per signal
 Avoid trading during news releases or low liquidity
