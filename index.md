@@ -1,6 +1,6 @@
 ---
 layout: home
-title: Home
+title: ASTONuRi Trading Blog
 ---
 
 # Home
