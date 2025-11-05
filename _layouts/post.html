@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{{ page.title }} | {{ site.title }}</title>
+    <meta name="description" content="{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}">
+
+    <!-- SEO and social sharing -->
+    {% seo %}
+
+    <!-- Default Minima styles -->
+    <link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+
+    <!-- ✅ Your custom styles -->
+    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ '/favicon.ico' | relative_url }}">
+  </head>
+
+  <body>
+    <header class="site-header">
+      {% include header.html %}
+    </header>
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        {{ content }}
+      </div>
+    </main>
+<div class="wrapper">
+  <h2>💬 Comments</h2>
+  <script src="https://giscus.app/client.js"
+          data-repo="ysaak/your-repo-name"
+          data-repo-id="YOUR_REPO_ID"
+          data-category="General"
+          data-category-id="YOUR_CATEGORY_ID"
+          data-mapping="pathname"
+          data-reactions-enabled="1"
+          data-emit-metadata="0"
+          data-theme="light"
+          crossorigin="anonymous"
+          async>
+  </script>
+</div>
+    <footer class="site-footer">
+      {% include footer.html %}
+    </footer>
+  </body>
+
+</html>
+
