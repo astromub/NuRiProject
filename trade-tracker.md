@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Trade Tracker
-permalink: /trade-tracker.html
+title: "Trade Tracker"
+permalink: /trade-tracker/
 ---
 
 <!DOCTYPE html>
