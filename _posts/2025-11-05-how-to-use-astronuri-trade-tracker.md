@@ -15,9 +15,9 @@ Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** —
 
 ## 🟢 1. Start Your Session
 
-- Click **START SESSION** to initialize tracking.
-- Set your **Initial Capital**, **Target Profit**, **Max Daily Loss**, and **Max Drawdown**.
 - Confirm your **Currency** and **Subscription Tier**.
+- Set your **Initial Capital**, **Target Profit**, **Max Daily Loss**, and **Max Drawdown**.
+- Click **START SESSION** to initialize tracking.
 
 > 💡 These parameters help the tracker calculate safe trade limits and recovery paths.
 
@@ -25,10 +25,12 @@ Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** —
 
 ## 🟢 2. Input Trade Details
 
-- Enter your **Payout %** and **Trade Cost**.
-- The tracker auto-calculates:
-  - **Trade Cost Control %**
+- Enter your **Payout %** and **Win Rate**.
+- The tracker can help you :
+  - **Auto-calculates your first trade**
+  - **Trade Cost Control by % of capital**
   - **Suggested Next Trade Cost**
+  - **and a Manual Trade Cost input**
 
 ---
 
@@ -37,7 +39,7 @@ Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** —
 - Click **LOG WIN** if your trade was successful.
 - Click **LOG LOSS** if your trade failed.
 
-> The tracker updates your session status, remaining capital, and risk metrics in real time.
+> The tracker updates your session status, **remaining capital**, and **risk metrics in real time**.
 
 ---
 
@@ -52,12 +54,12 @@ Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** —
 
 ## 🟢 5. Export or Halt
 
-- Click **DOWNLOAD SESSION HISTORY** to save your trade log
+- Click **DOWNLOAD SESSION HISTORY** to save your trade log it is **offered to Pro & Unlimitte**.
 - Use **SESSION HALT LOG** to record when you stop trading for the day
 
 ---
 
-## 🎥 Watch the Demo
+## 🎥 Watch the Demo - Coming Soon
 
 <div class="video-wrapper">
   <iframe width="560" height="315"
