@@ -1,3 +1,16 @@
+/* 🔧 Strong reset to remove unwanted top line */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any top border or shadow from header */
+.site-header {
+  border-top: none !important;
+  box-shadow: none !important;
+}
 /* 🔧 Reset unwanted top border */
 html, body {
   margin: 0;
