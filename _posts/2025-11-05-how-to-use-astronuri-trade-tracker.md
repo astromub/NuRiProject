@@ -8,9 +8,7 @@ tags: [binary trading, ASTROMub, trade tracker, tutorial]
 Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** — your personal dashboard for managing binary trades, tracking risk, and improving accuracy.
 
 ---
-<div style="text-align: center;">
-  <img src="/assets/images/astronuri.png" alt="ASTRONuri Trade Tracker Screenshot" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-</div>
+![ASTRONuri Trade Tracker Screenshot]({{ '/assets/images/astronuri.png' | relative_url }})
 ---
 
 ## 🟢 1. Start Your Session
