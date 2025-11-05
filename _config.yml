@@ -2,6 +2,7 @@ theme: minima
 title: ASTROMUB LIMITED
 description: Learn strategies and track trades
 author: AstroNuRi
+baseurl: "/NuRiProject"
 sass:
   style: compressed
   
