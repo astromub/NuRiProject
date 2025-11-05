@@ -3,6 +3,7 @@ layout: post
 title: "How to Use the ASTRONuri Trade Tracker"
 categories: beginner-guide
 tags: [binary trading, ASTROMub, trade tracker, tutorial]
+image: /assets/images/astronuri.png
 ---
 
 Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** — your personal dashboard for managing binary trades, tracking risk, and improving accuracy.
