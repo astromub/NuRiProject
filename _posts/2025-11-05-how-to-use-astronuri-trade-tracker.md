@@ -9,7 +9,7 @@ Welcome to your step-by-step guide for using the **ASTRONuri Trade Tracker** —
 
 ---
 <div style="text-align: center;">
-  <img src="/assets/images/Astronuri.png" alt="ASTRONuri Trade Tracker Screenshot" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <img src="/assets/images/Astronuri.PNG" alt="ASTRONuri Trade Tracker Screenshot" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
 </div>
 ---
 
