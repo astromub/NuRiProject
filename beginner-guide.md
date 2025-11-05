@@ -1,3 +1,9 @@
+---
+layout: default
+title: "Beginner Guide"
+permalink: /beginner-guide/
+---
+
 ## 📚 Beginner Guide Posts
 
 <ul>
