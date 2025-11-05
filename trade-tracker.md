@@ -4,7 +4,6 @@ title: "Trade Tracker"
 permalink: /trade-tracker/
 ---
 
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <style>
