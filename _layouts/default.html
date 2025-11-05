@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+<html lang="{{ page.lang | default: site.lang | default: 'en' }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,16 +21,38 @@
   </head>
 
   <body>
+    <!-- 🔧 Header -->
     <header class="site-header">
       {% include header.html %}
     </header>
 
+    <!-- 📄 Main content -->
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
         {{ content }}
       </div>
     </main>
 
+    <!-- 💬 Optional Giscus comment section -->
+    {% if page.layout == "post" %}
+    <div class="wrapper">
+      <h2>💬 Comments</h2>
+      <script src="https://giscus.app/client.js"
+              data-repo="ysaak/your-repo-name"
+              data-repo-id="YOUR_REPO_ID"
+              data-category="General"
+              data-category-id="YOUR_CATEGORY_ID"
+              data-mapping="pathname"
+              data-reactions-enabled="1"
+              data-emit-metadata="0"
+              data-theme="light"
+              crossorigin="anonymous"
+              async>
+      </script>
+    </div>
+    {% endif %}
+
+    <!-- 🔻 Footer -->
     <footer class="site-footer">
       {% include footer.html %}
     </footer>
