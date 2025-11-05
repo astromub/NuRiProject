@@ -1061,8 +1061,8 @@ permalink: /trade-tracker/
             softResetBtn.disabled = isSessionStarted;
             dataResetBtn.disabled = isSessionStarted;
 
-            // TIER LOCK LOGIC: Selector is disabled ONLY if a session is STARTED.
-            subscriptionTierSelect.disabled = isSessionStarted;
+            // REMOVED: Tier selector lock during active sessions
+            // subscriptionTierSelect.disabled = isSessionStarted; // This line has been removed
 
             // DOWNLOAD BUTTON: Enable for Pro and Unlimited tiers only
             downloadHistoryBtn.disabled = (tier === 'Free');
