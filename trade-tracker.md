@@ -176,6 +176,25 @@ permalink: /trade-tracker/
             padding: 8px 15px;
             border-radius: 5px;
             margin-bottom: 12px;
+            position: relative;
+        }
+
+        .suggested-cost-box.minimum-warning {
+            background-color: #e74c3c;
+            animation: pulse-warning 2s infinite;
+        }
+
+        @keyframes pulse-warning {
+            0% { background-color: #e74c3c; }
+            50% { background-color: #f39c12; }
+            100% { background-color: #e74c3c; }
+        }
+
+        .minimum-cost-warning {
+            font-size: 0.8em;
+            color: #ffeb3b;
+            margin-top: 5px;
+            font-weight: bold;
         }
 
         .suggested-cost-box p {
@@ -478,9 +497,10 @@ permalink: /trade-tracker/
                     </div>
                 </div>
                 
-                <div class="suggested-cost-box">
+                <div class="suggested-cost-box" id="suggested-cost-box">
                     <p>SUGGESTED NEXT TRADE COST:</p>
                     <div id="next-trade-cost" class="cost-value">0.00</div>
+                    <div id="minimum-cost-warning" class="minimum-cost-warning" style="display: none;"></div>
                 </div>
 
                 <div class="input-group-row two-cols">
@@ -702,6 +722,8 @@ permalink: /trade-tracker/
         const logoutLicenseBtn = document.getElementById('logout-license-btn');
         const softResetBtn = document.getElementById('soft-reset');
         const dataResetBtn = document.getElementById('data-reset');
+        const suggestedCostBox = document.getElementById('suggested-cost-box');
+        const minimumCostWarning = document.getElementById('minimum-cost-warning');
         
         const LOCAL_STORAGE_KEY = 'ASTRONuriTradeTrackerState';
         const TIER_DATA_STORE_KEY = 'ASTRONuriTierDataStore'; // New key for encapsulated data
@@ -890,21 +912,22 @@ permalink: /trade-tracker/
 
         function calculateNextTradeCost() {
             const manualValue = parseFloat(manualCostValueInput.value) || 0;
+            let calculatedCost = 0;
             
             if (manualRadio.checked) {
-                return manualValue; 
-            }
-
-            if (capitalPercentageRadio.checked) {
+                calculatedCost = manualValue; 
+            } else if (capitalPercentageRadio.checked) {
                 const percent = manualValue / 100;
-                return currentCapital * percent; 
+                calculatedCost = currentCapital * percent; 
+            } else if (accumulatedLoss > 0) {
+                calculatedCost = calculateRecoveryCost();
+            } else {
+                calculatedCost = baseTradeCost;
             }
             
-            if (accumulatedLoss > 0) {
-                return calculateRecoveryCost();
-            } else {
-                return baseTradeCost;
-            }
+            // Apply minimum trade cost based on currency
+            const minCost = countrySelect.value === 'PHP' ? 50 : 1;
+            return Math.max(calculatedCost, minCost);
         }
         
         // --- Log Functions ---
@@ -1100,13 +1123,40 @@ permalink: /trade-tracker/
                 manualCostValueInput.disabled = true;
             }
             
+            // --- Minimum Cost Warning ---
+            const nextCost = calculateNextTradeCost();
+            const minCost = countrySelect.value === 'PHP' ? 50 : 1;
+            
+            // Check if the calculated cost is being adjusted to minimum
+            let rawCost = 0;
+            if (manualRadio.checked) {
+                rawCost = parseFloat(manualCostValueInput.value) || 0;
+            } else if (capitalPercentageRadio.checked) {
+                const percent = parseFloat(manualCostValueInput.value) / 100 || 0;
+                rawCost = currentCapital * percent;
+            } else if (accumulatedLoss > 0) {
+                rawCost = calculateRecoveryCost();
+            } else {
+                rawCost = baseTradeCost;
+            }
+            
+            if (rawCost < minCost && nextCost === minCost) {
+                // Show warning that cost was adjusted to minimum
+                suggestedCostBox.classList.add('minimum-warning');
+                minimumCostWarning.style.display = 'block';
+                minimumCostWarning.textContent = `MINIMUM: ${currencySymbol} ${minCost.toFixed(2)}`;
+            } else {
+                suggestedCostBox.classList.remove('minimum-warning');
+                minimumCostWarning.style.display = 'none';
+            }
+            
             // --- Status Panel Data Update ---
             capitalAfterTopDisplay.textContent = currentCapital.toFixed(2);
             document.getElementById('session-count').textContent = tierDataStore[tier].sessionCount; // Use encapsulated session count
             document.getElementById('session-max-count').textContent = maxSessionsPerDay === Infinity ? '∞' : maxSessionsPerDay;
             document.getElementById('session-tier-label').textContent = tier;
             
-            nextTradeCostDisplay.textContent = calculateNextTradeCost().toFixed(2);
+            nextTradeCostDisplay.textContent = nextCost.toFixed(2);
             
             document.getElementById('current-profit-display').innerHTML = `${currencySymbol} ${currentProfit.toFixed(2)}`;
             
