@@ -70,6 +70,6 @@ Look for AO **“twin peaks” pattern** below zero for added confirmation.
 - Use **fixed trade size** or apply **anti-Martingale** (increase after wins)  
 - Limit to **3 consecutive trades per signal**  
 - Avoid trading during **news releases** or **low liquidity**  
-- Use [**ASTRONuRi Trade Tracker**](https://astromub.github.io/NuRiProject/trade-tracker.html) to manage your trades effectively  
+- Use [**ASTRONuRi Trade Tracker**](https://astromub.github.io/NuRiProject/trade-tracker/) to manage your trades effectively  
 
 ---
