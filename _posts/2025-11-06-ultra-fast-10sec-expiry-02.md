@@ -64,7 +64,7 @@ Enter **within 5 seconds** of signal confirmation. Use a **10-second expiry**.
 - Trade only during **high-volume sessions** (e.g., London or NY open)
 - Use **fixed stake sizing** (0.5–1% per trade)
 - Limit to **5 trades per hour** to avoid burnout
-- Log every trade using [**ASTRONuRi Trade Tracker**](https://astromub.github.io/NuRiProject/trade-tracker.html) to manage your trades effectively  
+- Log every trade using [**ASTRONuRi Trade Tracker**](https://astromub.github.io/NuRiProject/trade-tracker/) to manage your trades effectively  
 
 ---
 
