@@ -30,11 +30,12 @@
 <main class="page-content" aria-label="Content">
   <div class="wrapper">
     {% if page.url == "/" %}
+      <h2 class="section-title">📌 Latest</h2>
       <div class="post-grid">
         {% for post in site.posts limit:6 %}
           <div class="post-card">
             <a href="{{ post.url | relative_url }}">
-              <h3>{{ post.title }}</h3>
+              <h3 class="post-title">{{ post.title }}</h3>
             </a>
             <p class="post-date">{{ post.date | date: "%b %d, %Y" }}</p>
             <p class="post-excerpt">{{ post.excerpt | strip_html | truncate: 100 }}</p>
