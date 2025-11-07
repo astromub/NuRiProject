@@ -71,12 +71,13 @@
     <footer class="site-footer">
       {% include footer.html %}
     </footer>
+    
 <div id="visitor-counter">
   Visitors: <span id="visitor-count">Loading...</span>
 </div>
 
 <script>
-fetch('https://visitor-counter.<'https://ancient-cell-9c08.paanobaga.workers.dev/')
+fetch('https://ancient-cell-9c08.paanobaga.workers.dev/')
   .then(res => res.json())
   .then(data => {
     document.getElementById('visitor-count').textContent = data.visits;
