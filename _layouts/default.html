@@ -26,27 +26,27 @@
       {% include header.html %}
     </header>
 
-   <!-- 📄 Main content -->
-<main class="page-content" aria-label="Content">
-  <div class="wrapper">
-    {% if page.url == "/" %}
-      <h2 class="section-title">📌 Latest</h2>
-      <div class="post-grid">
-        {% for post in site.posts limit:6 %}
-          <div class="post-card">
-            <a href="{{ post.url | relative_url }}">
-              <h3 class="post-title">{{ post.title }}</h3>
-            </a>
-            <p class="post-date">{{ post.date | date: "%b %d, %Y" }}</p>
-            <p class="post-excerpt">{{ post.excerpt | strip_html | truncate: 100 }}</p>
+    <!-- 📄 Main content -->
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        {% if page.url == "/" %}
+          <h2 class="section-title">📌 Latest</h2>
+          <div class="post-grid">
+            {% for post in site.posts limit:6 %}
+              <div class="post-card">
+                <a href="{{ post.url | relative_url }}">
+                  <h3 class="post-title">{{ post.title }}</h3>
+                </a>
+                <p class="post-date">{{ post.date | date: "%b %d, %Y" }}</p>
+                <p class="post-excerpt">{{ post.excerpt | strip_html | truncate: 100 }}</p>
+              </div>
+            {% endfor %}
           </div>
-        {% endfor %}
+        {% else %}
+          {{ content }}
+        {% endif %}
       </div>
-    {% else %}
-      {{ content }}
-    {% endif %}
-  </div>
-</main>
+    </main>
 
     <!-- 💬 Optional Giscus comment section -->
     {% if page.layout == "post" %}
@@ -68,25 +68,51 @@
     {% endif %}
 
     <!-- 🔻 Footer -->
-    <footer class="site-footer">
-      {% include footer.html %}
+    <footer class="site-footer" style="text-align: center; font-size: 0.85rem; padding: 20px 0; background-color: #f9f9f9; color: #333;">
+      <div>Powered by <strong>ASTROMub Limited</strong></div>
     </footer>
-    
-<div id="visitor-counter">
-  Visitors: <span id="visitor-count">Loading...</span>
-</div>
 
-<script>
-fetch('https://ancient-cell-9c08.paanobaga.workers.dev/')
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById('visitor-count').textContent = data.visits;
-  })
-  .catch(err => {
-    console.error("Visitor counter error:", err);
-    document.getElementById('visitor-count').textContent = "N/A";
-  });
-</script>
+    <!-- 🚀 Animated Visitor Counter (Floating Bottom-Left) -->
+    <div style="
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 6px 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 9999;
+      font-family: sans-serif;
+    ">
+      Visitors: <span id="visitor-count">Loading...</span>
+    </div>
 
+    <script>
+    fetch('https://ancient-cell-9c08.paanobaga.workers.dev/')
+      .then(res => res.json())
+      .then(data => {
+        const target = data.visits || data.count || 0;
+        const span = document.getElementById('visitor-count');
+        let current = 0;
+        const step = Math.ceil(target / 30); // speed of animation
+
+        const animate = () => {
+          current += step;
+          if (current >= target) {
+            span.textContent = target.toLocaleString();
+          } else {
+            span.textContent = current.toLocaleString();
+            requestAnimationFrame(animate);
+          }
+        };
+
+        animate();
+      })
+      .catch(err => {
+        console.error("Visitor counter error:", err);
+        document.getElementById('visitor-count').textContent = "N/A";
+      });
+    </script>
   </body>
 </html>
