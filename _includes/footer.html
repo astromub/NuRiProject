@@ -4,7 +4,7 @@
 </footer>
 
 <!-- Visitor Counter (Bottom-Left) -->
-<div id="visitor-counter" style="
+<div style="
   position: fixed;
   bottom: 10px;
   left: 10px;
@@ -15,9 +15,6 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   z-index: 9999;
 ">
-
-<!-- ✅ Counter.dev script must be outside the visual container -->
-<div id="visitor-counter">
   Visitors: <span id="visitor-count">Loading...</span>
 </div>
 
@@ -25,14 +22,10 @@
 fetch('https://ancient-cell-9c08.paanobaga.workers.dev/')
   .then(res => res.json())
   .then(data => {
-    document.getElementById('visitor-count').textContent = data.visits;
+    document.getElementById('visitor-count').textContent = data.visits || data.count;
   })
   .catch(err => {
     console.error("Visitor counter error:", err);
     document.getElementById('visitor-count').textContent = "N/A";
   });
 </script>
-
-
-
-
