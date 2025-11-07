@@ -26,12 +26,26 @@
       {% include header.html %}
     </header>
 
-    <!-- 📄 Main content -->
-    <main class="page-content" aria-label="Content">
-      <div class="wrapper">
-        {{ content }}
+   <!-- 📄 Main content -->
+<main class="page-content" aria-label="Content">
+  <div class="wrapper">
+    {% if page.url == "/" %}
+      <div class="post-grid">
+        {% for post in site.posts limit:6 %}
+          <div class="post-card">
+            <a href="{{ post.url | relative_url }}">
+              <h3>{{ post.title }}</h3>
+            </a>
+            <p class="post-date">{{ post.date | date: "%b %d, %Y" }}</p>
+            <p class="post-excerpt">{{ post.excerpt | strip_html | truncate: 100 }}</p>
+          </div>
+        {% endfor %}
       </div>
-    </main>
+    {% else %}
+      {{ content }}
+    {% endif %}
+  </div>
+</main>
 
     <!-- 💬 Optional Giscus comment section -->
     {% if page.layout == "post" %}
