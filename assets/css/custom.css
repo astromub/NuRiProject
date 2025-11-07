@@ -162,4 +162,42 @@ section {
   }
 }
 
+.post-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.post-card {
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  width: 280px;
+  transition: transform 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+}
+
+.post-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  color: #0077cc;
+}
+
+.post-date {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.post-excerpt {
+  font-size: 0.9rem;
+  color: #333;
+}
+
 
