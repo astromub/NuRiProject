@@ -71,17 +71,6 @@
     <footer class="site-footer">
       {% include footer.html %}
     </footer>
-<script>
-fetch('https://api.countapi.xyz/hit/astromub.github.io/visits')
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById('visitor-count').textContent = data.value;
-  })
-  .catch(err => {
-    console.error("Visitor counter error:", err);
-    document.getElementById('visitor-count').textContent = "N/A";
-  });
-</script>
 
   </body>
 </html>
