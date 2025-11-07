@@ -6,6 +6,9 @@ permalink: /trade-tracker/
 
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRONuri Trade Tracker</title>
     <style>
         /* --- General Layout --- */
         body {
@@ -309,7 +312,6 @@ permalink: /trade-tracker/
             color: #2ecc71; 
         }
 
-
         /* --- Risk Monitoring --- */
         .risk-monitoring {
             background-color: #34495e;
@@ -577,23 +579,21 @@ permalink: /trade-tracker/
         </div>
     </div>
     
-    <script src="license_list.js"></script> 
-
     <script>
-        // --- License Vault Content ---
-        // licenseKeys object is now available globally from license_list.js
-        
-        let licenseResolver = null; 
-        let previousTier = 'Free'; 
+        // Cloudflare Worker URL - UPDATE THIS WITH YOUR ACTUAL WORKER URL
+        const CLOUDFLARE_WORKER_URL = 'https://ancient-cell-9c08.paanobaga.workers.dev';
+
+        let licenseResolver = null;
+        let previousTier = 'Free';
 
         /**
-         * Checks the license key for a selected tier via a modal popup.
+         * Checks the license key for a selected tier via Cloudflare Worker.
          * @param {string} tier - The tier to activate ('Pro' or 'Unlimited').
          * @returns {Promise<boolean>} Resolves true if licensed, false otherwise.
          */
         async function checkLicense(tier) {
             if (tier === 'Free') {
-                return true; 
+                return true;
             }
             
             // Check if history clear is required before proceeding with login attempt
@@ -615,60 +615,76 @@ permalink: /trade-tracker/
             const input = document.getElementById('license-key-input');
             
             title.textContent = `Activate ${tier} Tier`;
-            input.value = ''; 
+            input.value = '';
             
-            modal.style.display = 'flex'; 
+            modal.style.display = 'flex';
 
             return new Promise((resolve) => {
                 licenseResolver = resolve;
             });
         }
         
-        function handleLicenseActivation() {
+        async function handleLicenseActivation() {
             const currentTier = subscriptionTierSelect.value;
             const input = document.getElementById('license-key-input');
             const modal = document.getElementById('license-modal');
             
-            // Accessing the licenseKeys object defined in license_list.js
-            const requiredKey = licenseKeys[currentTier.toUpperCase()];
             const enteredKey = input.value.trim().toUpperCase();
 
-            if (enteredKey === requiredKey) {
-                alert(`License verified for ${currentTier} Tier!`);
-                modal.style.display = 'none'; 
-                tier = currentTier; // Set the tier upon successful login
-                previousTier = currentTier; // Update previous tier
-                
-                // IMPORTANT: Load the newly activated tier's persistent data
-                loadTierPersistentData(tier);
-                
-                setMaxSessionsPerDay();
-                if (licenseResolver) licenseResolver(true);
-            } else {
-                alert(`Invalid license key for ${currentTier} Tier. Please try again.`);
-                input.value = ''; 
+            if (!enteredKey) {
+                alert('Please enter a license key');
+                return;
             }
+
+            try {
+                // Call Cloudflare Worker for license verification
+                const response = await fetch(CLOUDFLARE_WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tier: currentTier,
+                        licenseKey: enteredKey
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`License verified for ${currentTier} Tier!`);
+                    modal.style.display = 'none';
+                    tier = currentTier;
+                    previousTier = currentTier;
+                    
+                    loadTierPersistentData(tier);
+                    setMaxSessionsPerDay();
+                    if (licenseResolver) licenseResolver(true);
+                } else {
+                    alert(`Invalid license key for ${currentTier} Tier. Please try again.`);
+                    input.value = '';
+                }
+            } catch (error) {
+                console.error('License verification failed:', error);
+                alert('License verification failed. Please check your connection and try again.');
+            }
+            
             updateUI();
         }
 
         function handleLicenseCancel() {
             const modal = document.getElementById('license-modal');
             alert(`License check canceled. Reverting to ${previousTier} Tier.`);
-            modal.style.display = 'none'; 
+            modal.style.display = 'none';
             
-            // Revert tier selection to the state before the failed check
-            subscriptionTierSelect.value = previousTier; 
+            subscriptionTierSelect.value = previousTier;
             tier = previousTier;
-            
-            // IMPORTANT: Reload the data for the tier we reverted to
-            loadTierPersistentData(tier); 
-            
+            loadTierPersistentData(tier);
             setMaxSessionsPerDay();
             if (licenseResolver) licenseResolver(false);
-            
             updateUI();
         }
-        
+
         // --- GLOBAL STATE VARIABLES (Shared UI/Session Params) ---
         
         let sessionInitialCapital = 300; 
@@ -699,6 +715,8 @@ permalink: /trade-tracker/
              'Unlimited': { sessionCount: 0, nextActivationTime: 0, tradeHistory: [], haltHistory: [] }
         };
         
+        let tradeHistory = [];
+        let haltHistory = [];
 
         // --- UI Caching ---
         const nextTradeCostDisplay = document.getElementById('next-trade-cost');
@@ -726,8 +744,7 @@ permalink: /trade-tracker/
         const minimumCostWarning = document.getElementById('minimum-cost-warning');
         
         const LOCAL_STORAGE_KEY = 'ASTRONuriTradeTrackerState';
-        const TIER_DATA_STORE_KEY = 'ASTRONuriTierDataStore'; // New key for encapsulated data
-
+        const TIER_DATA_STORE_KEY = 'ASTRONuriTierDataStore';
 
         // --- Local Storage Integration ---
 
@@ -737,66 +754,53 @@ permalink: /trade-tracker/
             else maxSessionsPerDay = 3; 
         }
 
-        // Saves the current dynamic variables (currentCapital, currentProfit, tradeCount, etc.) 
-        // back into the tierDataStore for the active tier.
         function saveTierPersistentData(currentTier = tier) {
             if (!tierDataStore[currentTier]) {
                 tierDataStore[currentTier] = { sessionCount: 0, nextActivationTime: 0, tradeHistory: [], haltHistory: [] };
             }
             
-            // Save current dynamic session data into the active tier's slot
-            // sessionCount is now managed directly in tierDataStore, no need to copy from global variable
-            // nextActivationTime is set within Critical Halt and ImposeLimit functions
             tierDataStore[currentTier].tradeHistory = tradeHistory;
             tierDataStore[currentTier].haltHistory = haltHistory;
         }
 
-        // Loads the tier-specific data into the active dynamic variables
         function loadTierPersistentData(currentTier = tier) {
             const data = tierDataStore[currentTier];
             
-            // sessionCount is now managed directly in tierDataStore
             tradeHistory = data.tradeHistory || [];
             haltHistory = data.haltHistory || [];
             
-            // Re-calculate derived values based on the loaded history
             let lastTrade = tradeHistory.length > 0 ? tradeHistory[tradeHistory.length - 1] : null;
             
             if (lastTrade && lastTrade.result !== 'START') {
                  currentCapital = lastTrade.capitalAfter;
             } else {
-                 currentCapital = parseFloat(initialCapitalInput.value); // Use current UI value as fallback
+                 currentCapital = parseFloat(initialCapitalInput.value);
             }
 
-            maxCapital = currentCapital; // Reset maxCapital on load for a clean session start
+            maxCapital = currentCapital;
 
-            // Recalculate global stats from tradeHistory to ensure consistency after load
             tradeCount = tradeHistory.length > 0 ? tradeHistory[tradeHistory.length - 1].id : 0;
             totalTrades = tradeHistory.filter(t => t.result !== 'START').length;
             totalWins = tradeHistory.filter(t => t.result === 'Win').length;
             currentProfit = tradeHistory.filter(t => t.result !== 'START').reduce((sum, trade) => sum + trade.pnl, 0);
 
-            accumulatedLoss = 0; // Accumulated loss is session-specific, reset on load/start
-            winningStreak = 0; // Winning streak is session-specific, reset on load/start
-            sessionStatus = 'IDLE'; // Status always starts as IDLE on load
+            accumulatedLoss = 0;
+            winningStreak = 0;
+            sessionStatus = 'IDLE';
 
-            // Set max sessions for the loaded tier
             setMaxSessionsPerDay(currentTier);
         }
 
         function saveState() {
-            // 1. Save all dynamic data from the active tier back to the store
-            saveTierPersistentData(tier); 
+            saveTierPersistentData(tier);
 
-            // 2. Save the global/UI state (Session Params, Inputs, etc.)
             const globalState = {
                 sessionInitialCapital, 
                 sessionTargetProfit,
                 sessionMaxDailyLossPercent,
                 sessionMaxDrawdown,
                 tier,
-                previousTier, // Persist previous tier for clean switching
-                // UI Inputs (these are saved globally as they are shared across tiers but can be changed per user)
+                previousTier,
                 initialCapitalInput: parseFloat(initialCapitalInput.value),
                 targetProfitInput: parseFloat(targetProfitInput.value),
                 maxDailyLossPercentInput: parseFloat(document.getElementById('max-daily-loss').value),
@@ -811,8 +815,7 @@ permalink: /trade-tracker/
 
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(globalState));
-                // 3. Save the master tier data store
-                localStorage.setItem(TIER_DATA_STORE_KEY, JSON.stringify(tierDataStore)); 
+                localStorage.setItem(TIER_DATA_STORE_KEY, JSON.stringify(tierDataStore));
             } catch (e) {
                 console.error("Error saving to Local Storage", e);
             }
@@ -820,30 +823,25 @@ permalink: /trade-tracker/
 
         function loadState() {
             try {
-                // 1. Load master tier data store
                 const storedTierData = localStorage.getItem(TIER_DATA_STORE_KEY);
                 if (storedTierData) {
                     tierDataStore = JSON.parse(storedTierData);
                 }
                 
-                // Ensure all tiers exist in the store with default structure
                 ['Free', 'Pro', 'Unlimited'].forEach(t => {
                     if (!tierDataStore[t]) {
                         tierDataStore[t] = { sessionCount: 0, nextActivationTime: 0, tradeHistory: [], haltHistory: [] };
                     }
                 });
 
-                // 2. Load Global State
                 const storedGlobalState = localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (!storedGlobalState) {
-                    // If no global state, we rely on defaults and the clean tierDataStore
                     loadTierPersistentData('Free');
-                    return; 
+                    return;
                 }
 
                 const state = JSON.parse(storedGlobalState);
                 
-                // Restore Global State (Session Params & Current Tier)
                 sessionInitialCapital = state.sessionInitialCapital || 300;
                 sessionTargetProfit = state.sessionTargetProfit || 100;
                 sessionMaxDailyLossPercent = state.sessionMaxDailyLossPercent || 50;
@@ -852,7 +850,6 @@ permalink: /trade-tracker/
                 tier = state.tier || 'Free';
                 previousTier = state.previousTier || 'Free';
                 
-                // Restore UI Inputs
                 initialCapitalInput.value = state.initialCapitalInput || 300;
                 targetProfitInput.value = state.targetProfitInput || 100;
                 document.getElementById('max-daily-loss').value = state.maxDailyLossPercentInput || 50;
@@ -863,24 +860,21 @@ permalink: /trade-tracker/
                 countrySelect.value = state.country || 'PHP';
                 subscriptionTierSelect.value = state.subscriptionTier || 'Free';
                 
-                // Restore Cost Control Radio Button
                 const costRadio = document.getElementById(state.costControlType || 'default-radio');
                 if (costRadio) costRadio.checked = true;
 
-                // 3. Load the specific data for the current active tier
-                loadTierPersistentData(tier); 
+                loadTierPersistentData(tier);
 
             } catch (e) {
                 console.error("Error loading from Local Storage. Starting clean.", e);
-                localStorage.removeItem(LOCAL_STORAGE_KEY); 
-                localStorage.removeItem(TIER_DATA_STORE_KEY); 
-                // Fallback to fresh state
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                localStorage.removeItem(TIER_DATA_STORE_KEY);
                 loadTierPersistentData('Free');
-                init(); // Re-run init to ensure clean defaults
+                init();
             }
         }
 
-        // --- Core Calculation Functions (No Change) ---
+        // --- Core Calculation Functions ---
         
         function calculateBaseTradeCost() {
             const T = parseFloat(targetProfitInput.value) || 1;
@@ -925,7 +919,6 @@ permalink: /trade-tracker/
                 calculatedCost = baseTradeCost;
             }
             
-            // Apply minimum trade cost based on currency
             const minCost = countrySelect.value === 'PHP' ? 50 : 1;
             return Math.max(calculatedCost, minCost);
         }
@@ -941,7 +934,7 @@ permalink: /trade-tracker/
 
             currentCapital += pnl;
             currentProfit += pnl;
-            maxCapital = Math.max(maxCapital, currentCapital); 
+            maxCapital = Math.max(maxCapital, currentCapital);
 
             if (defaultRadio.checked) {
                 accumulatedLoss = 0; 
@@ -961,7 +954,7 @@ permalink: /trade-tracker/
             });
             
             checkHaltConditions();
-            updateUI(); 
+            updateUI();
         }
 
         function logLoss() {
@@ -978,7 +971,7 @@ permalink: /trade-tracker/
             }
             
             totalTrades++;
-            winningStreak = 0; // Reset streak on loss
+            winningStreak = 0;
             
             tradeHistory.push({ 
                 id: ++tradeCount,
@@ -990,23 +983,21 @@ permalink: /trade-tracker/
             });
             
             checkHaltConditions();
-            updateUI(); 
+            updateUI();
         }
         
         // --- UI/Data Functions ---
 
         function renderTradeHistory() {
-            tradeHistoryBody.innerHTML = ''; 
+            tradeHistoryBody.innerHTML = '';
             
-            // Reference the active tier's trade history
             const historyToRender = tierDataStore[tier].tradeHistory;
 
             for (const trade of historyToRender) {
-                const row = tradeHistoryBody.insertRow(0); // Insert at the top (index 0)
+                const row = tradeHistoryBody.insertRow(0);
                 
                 let rowNextTradeCost = '---';
                 
-                // Find the next trade's cost to display in the current row's 'Next Trade' column
                 const nextTrade = historyToRender.find(t => t.id === trade.id + 1);
                 
                 if (nextTrade) {
@@ -1028,7 +1019,6 @@ permalink: /trade-tracker/
             }
         }
         
-        // Helper function to check if the current tier is in cooldown
         function isTierInCooldown(currentTier = tier) {
             const now = Date.now();
             const nextActivationTime = tierDataStore[currentTier].nextActivationTime;
@@ -1050,20 +1040,16 @@ permalink: /trade-tracker/
             
             const currencySymbol = countrySelect.value === 'PHP' ? 'Ph' : '$';
             
-            // --- Cooldown Check & Logic Reset ---
             const now = Date.now();
             let isCurrentTierHalted = isTierInCooldown(tier);
             
-            // 1. Check if an existing cooldown has expired
             if (isCurrentTierHalted && now >= tierDataStore[tier].nextActivationTime) {
-                tierDataStore[tier].nextActivationTime = 0; // Clear the cooldown flag for this tier
+                tierDataStore[tier].nextActivationTime = 0;
                 isCurrentTierHalted = false;
-                sessionStatus = 'IDLE'; 
-                // Use the tier's halt history
+                sessionStatus = 'IDLE';
                 tierDataStore[tier].haltHistory.push(`Severe Halt Cooldown Expired for ${tier} Tier. Session ready.`);
             }
 
-            // --- UI Activation/Deactivation ---
             sessionStatusDisplay.textContent = sessionStatus;
             sessionStatusDisplay.className = `status-label ${sessionStatus.toLowerCase()}`;
             
@@ -1074,29 +1060,21 @@ permalink: /trade-tracker/
             logWinBtn.disabled = !isSessionStarted;
             logLossBtn.disabled = !isSessionStarted;
             
-            // Session parameters are ONLY disabled when a session is STARTED.
             sessionParameterInputs.forEach(input => {
                 input.disabled = isSessionStarted;
             });
             
-            // Main control buttons are ONLY disabled when a session is STARTED.
             softResetBtn.disabled = isSessionStarted;
             dataResetBtn.disabled = isSessionStarted;
 
-            // REMOVED: Tier selector lock during active sessions
-            // subscriptionTierSelect.disabled = isSessionStarted; // This line has been removed
-
-            // DOWNLOAD BUTTON: Enable for Pro and Unlimited tiers only
             downloadHistoryBtn.disabled = (tier === 'Free');
 
-            // LOGOUT BUTTON VISIBILITY 
             if (tier !== 'Free') {
                 logoutLicenseBtn.style.display = 'block';
             } else {
                  logoutLicenseBtn.style.display = 'none';
             }
 
-            // --- Cooldown Display ---
             if (isCurrentTierHalted) {
                  startSessionBtn.classList.add('flash-error');
                  haltLogBox.classList.add('flash-error');
@@ -1111,7 +1089,6 @@ permalink: /trade-tracker/
                  startSessionBtn.textContent = `START SESSION`;
             }
 
-            // --- Cost Control UI Update ---
             if (capitalPercentageRadio.checked) {
                 costUnitSpan.textContent = '%';
                 manualCostValueInput.disabled = false;
@@ -1123,11 +1100,9 @@ permalink: /trade-tracker/
                 manualCostValueInput.disabled = true;
             }
             
-            // --- Minimum Cost Warning ---
             const nextCost = calculateNextTradeCost();
             const minCost = countrySelect.value === 'PHP' ? 50 : 1;
             
-            // Check if the calculated cost is being adjusted to minimum
             let rawCost = 0;
             if (manualRadio.checked) {
                 rawCost = parseFloat(manualCostValueInput.value) || 0;
@@ -1141,7 +1116,6 @@ permalink: /trade-tracker/
             }
             
             if (rawCost < minCost && nextCost === minCost) {
-                // Show warning that cost was adjusted to minimum
                 suggestedCostBox.classList.add('minimum-warning');
                 minimumCostWarning.style.display = 'block';
                 minimumCostWarning.textContent = `MINIMUM: ${currencySymbol} ${minCost.toFixed(2)}`;
@@ -1150,9 +1124,8 @@ permalink: /trade-tracker/
                 minimumCostWarning.style.display = 'none';
             }
             
-            // --- Status Panel Data Update ---
             capitalAfterTopDisplay.textContent = currentCapital.toFixed(2);
-            document.getElementById('session-count').textContent = tierDataStore[tier].sessionCount; // Use encapsulated session count
+            document.getElementById('session-count').textContent = tierDataStore[tier].sessionCount;
             document.getElementById('session-max-count').textContent = maxSessionsPerDay === Infinity ? '∞' : maxSessionsPerDay;
             document.getElementById('session-tier-label').textContent = tier;
             
@@ -1163,13 +1136,12 @@ permalink: /trade-tracker/
             document.getElementById('loss-left-display').textContent = calculateLossLeft().toFixed(2);
             document.getElementById('drawdown-display').textContent = calculateDrawdown().toFixed(2);
 
-            // FIX: The template uses **0 WINS** (36.36% / 4/11). We use the 'winningStreak' variable for the WINS count.
             const winRate = totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0.00;
             document.getElementById('winning-streak-display').innerHTML = `**${winningStreak} WINS** (${winRate.toFixed(2)}% / ${totalWins}/${totalTrades})`;
             
             renderTradeHistory();
             renderHaltHistory();
-            saveState(); // Save state on every UI update
+            saveState();
         }
 
         function calculateLossLeft() {
@@ -1204,7 +1176,6 @@ permalink: /trade-tracker/
                 shouldHalt = true;
             }
             
-            // CRITICAL HALT CONDITION (Must be checked last)
             const capitalLossThreshold = sessionInitialCapital * 0.20;
             if (currentCapital <= capitalLossThreshold) {
                 reason = `CRITICAL HALT: Capital dropped below 20% threshold (${currency} ${currentCapital.toFixed(2)}). Next activation in 12 hours.`;
@@ -1215,20 +1186,13 @@ permalink: /trade-tracker/
             if(shouldHalt && sessionStatus === 'STARTED') {
                 sessionStatus = 'HALTED';
                 
-                // Use the currently active tier's history and session count
                 const currentSessionCount = tierDataStore[tier].sessionCount;
                 tierDataStore[tier].haltHistory.push(`Session ${currentSessionCount} Halt: ${reason}`);
                 
                 if (criticalHalt) {
-                    // 1. SET COOLDOWN FLAGS FOR THIS TIER ONLY in the store
                     tierDataStore[tier].nextActivationTime = Date.now() + (12 * 60 * 60 * 1000); 
-                    
-                    // 2. Hard reset of session count on critical failure for THIS TIER
                     tierDataStore[tier].sessionCount = 0; 
-                    
-                    // 3. Clear session data for THIS TIER
-                    clearTierData(tier, false); 
-                    
+                    clearTierData(tier, false);
                     alert("CRITICAL HALT: All history cleared and a 12-hour cooldown has been imposed due to capital depletion.");
                 }
                 
@@ -1236,10 +1200,8 @@ permalink: /trade-tracker/
             }
         }
 
-
         function renderHaltHistory() {
             const haltLogBox = document.getElementById('session-halt-log-box');
-            // Reference the active tier's halt history
             const historyToRender = tierDataStore[tier].haltHistory;
 
             haltLogBox.innerHTML = '';
@@ -1252,18 +1214,10 @@ permalink: /trade-tracker/
             }
         }
         
-        /**
-         * Clears all trade history and resets session-based counters for a specific tier.
-         * @param {string} targetTier - The tier whose data should be cleared.
-         * @param {boolean} fullReset - If true, resets cooldown flags and sessionCount.
-         */
         function clearTierData(targetTier, fullReset = false) {
-            
-            // Reset ALL history for the target tier
             tierDataStore[targetTier].tradeHistory = []; 
             tierDataStore[targetTier].haltHistory = []; 
             
-            // Reset dynamic variables if the target tier is the currently active tier
             if (targetTier === tier) {
                  tradeCount = 0;
                  totalTrades = 0;
@@ -1271,71 +1225,52 @@ permalink: /trade-tracker/
                  accumulatedLoss = 0;
                  winningStreak = 0;
                  currentProfit = 0;
-                 sessionStatus = 'IDLE'; 
-                 
-                 // Reset capital back to initial capital (using current UI value as source)
+                 sessionStatus = 'IDLE';
                  currentCapital = parseFloat(initialCapitalInput.value);
                  maxCapital = currentCapital;
             }
             
-            // Only reset cooldown flags and session count on a FULL HARD RESET 
             if (fullReset) {
                 tierDataStore[targetTier].sessionCount = 0;
                 tierDataStore[targetTier].nextActivationTime = 0;
             }
             
-            // If the active tier's data was cleared but we are not doing a full UI/global reset, 
-            // we must ensure the UI reflects the cleared state.
             if (targetTier === tier) {
                 loadTierPersistentData(tier);
             }
 
-            saveState(); // Save the master store after the clear
+            saveState();
         }
 
-        /**
-         * Imposes a 12-hour cooldown due to session limit and resets relevant counters for the active tier.
-         */
         function imposeTierLimitCooldown() {
-            // 1. Set Cooldown Flags for THIS TIER ONLY in the store
             tierDataStore[tier].nextActivationTime = Date.now() + (12 * 60 * 60 * 1000); 
             sessionStatus = 'HALTED';
             
-            // 2. Log and Reset
             const currentSessionCount = tierDataStore[tier].sessionCount;
             tierDataStore[tier].haltHistory.push(`Session Limit Reached (${tier} - ${maxSessionsPerDay} sessions). Imposing 12-hour cooldown. **Session count reset to 0.**`);
             
-            // 3. Hard reset the session count on this failure for THIS TIER
-            tierDataStore[tier].sessionCount = 0; 
-            
-            // 4. Clear history for this tier
-            clearTierData(tier, false); 
+            tierDataStore[tier].sessionCount = 0;
+            clearTierData(tier, false);
             
             alert(`Session limit of ${maxSessionsPerDay} reached for ${tier} Tier. A 12-hour cooldown has been imposed.`);
         }
 
         function softReset() {
-            // Soft reset just refreshes the UI state based on current inputs
             updateUI();
         }
         
         function dataReset() {
             if (!confirm("WARNING: This will erase ALL trade history, halt history, and reset current session for ALL TIERS. Session counts and cooldown timers will be preserved. Are you sure?")) return;
             
-            // Perform a data-only reset for ALL TIERS (preserve session counts and cooldowns)
             ['Free', 'Pro', 'Unlimited'].forEach(t => {
-                // Clear trade history and halt history but preserve session counts and cooldowns
                 tierDataStore[t].tradeHistory = [];
                 tierDataStore[t].haltHistory = [];
                 
-                // Only reset Unlimited session count (since it has no limits)
                 if (t === 'Unlimited') {
                     tierDataStore[t].sessionCount = 0;
                 }
-                // Free and Pro keep their session counts to maintain daily limits
             });
             
-            // Reset Global UI Inputs 
             initialCapitalInput.value = 300;
             targetProfitInput.value = 100;
             document.getElementById('max-daily-loss').value = 50;
@@ -1346,31 +1281,25 @@ permalink: /trade-tracker/
             document.getElementById('default-radio').checked = true;
             subscriptionTierSelect.value = 'Free';
             
-            // Set active tier back to Free
             tier = 'Free';
             previousTier = 'Free';
             setMaxSessionsPerDay();
             
-            // Load the clean Free tier data
-            loadTierPersistentData('Free'); 
+            loadTierPersistentData('Free');
             
             updateUI();
             saveState();
         }
 
-        /**
-         * Logs out the current license, resetting the tier to Free and clearing the logged out tier's data.
-         */
         function logoutLicense() {
             const loggedOutTier = tier;
             
-            if (loggedOutTier === 'Free') return; // Cannot log out Free tier
+            if (loggedOutTier === 'Free') return;
             
             if (sessionStatus === 'STARTED') {
-                // FORCE HALT THE SESSION (counts as 1 session used)
                 tierDataStore[loggedOutTier].haltHistory.push(`Session ${tierDataStore[loggedOutTier].sessionCount} Halt: License Abandoned during active session. Forced Halt.`);
                 sessionStatus = 'HALTED';
-                updateUI(); // Quick update to reflect HALTED status and ensure counter is updated
+                updateUI();
                 alert("NOTICE: Your active session has been automatically HALTED to proceed with license logout.");
             }
             
@@ -1381,72 +1310,56 @@ permalink: /trade-tracker/
                 return;
             }
             
-            // Store the current Free tier session count before clearing paid tier data
             const freeSessionCount = tierDataStore['Free'].sessionCount;
             
-            // Clear only the paid tier's data (Soft reset for THAT tier - preserve session counts and cooldowns)
-            clearTierData(loggedOutTier, false); // CHANGED: from true to false to preserve sessionCount and nextActivationTime
+            clearTierData(loggedOutTier, false);
             
-            // Revert active tier to Free and restore Free session count
             tier = 'Free';
             previousTier = 'Free';
             subscriptionTierSelect.value = 'Free';
             setMaxSessionsPerDay();
             
-            // Restore the Free tier's session count
             tierDataStore['Free'].sessionCount = freeSessionCount;
             
-            // Load the clean Free tier data
-            loadTierPersistentData('Free'); 
+            loadTierPersistentData('Free');
             
             alert(`License for ${loggedOutTier} successfully logged out. Trade history cleared. Reverting to Free Tier.`);
             updateUI();
         }
-
 
         // --- Event Handlers ---
 
         subscriptionTierSelect.addEventListener('change', async (e) => {
             const newTier = e.target.value;
             
-            // REMOVED: Tier switching restriction during active sessions
-            // Users can now switch tiers at any time
-            
-            // 1. Save the state of the *old* tier before switching
-            saveTierPersistentData(tier); 
+            saveTierPersistentData(tier);
 
-            // 2. Perform license check if moving to a paid tier
             if (newTier !== 'Free') {
                 const licenseSuccess = await checkLicense(newTier);
                 if (!licenseSuccess) {
-                    e.target.value = previousTier; // Revert if cancelled/failed login
+                    e.target.value = previousTier;
                     return;
                 }
             } else if (newTier === 'Free' && tier !== 'Free') {
-                 // 3. Check for history clear if moving from paid back to free
                 if (tierDataStore[tier].tradeHistory.length > 0) {
                     const warning = `WARNING: Reverting to the Free Tier will clear all current **${tier} Tier** trade history and session logs. Please download your data first if you wish to keep it. Do you wish to continue?`;
                     if (!confirm(warning)) {
-                        e.target.value = tier; // Revert selection
+                        e.target.value = tier;
                         updateUI();
                         return;
                     }
-                    // User confirmed data clear (Full hard reset for the old paid tier)
-                    clearTierData(tier, true); 
+                    clearTierData(tier, true);
                 }
                 
-                // Finalize revert to Free - session count is preserved automatically
                 previousTier = 'Free';
                 tier = 'Free';
                 
             } else if (newTier === 'Free' && tier === 'Free') {
-                 // No action needed if selecting Free when already on Free
             }
             
-            // 4. Update and Load the new tier's data
             tier = newTier;
             previousTier = newTier;
-            loadTierPersistentData(tier); // Load the clean/persisted state for the new tier
+            loadTierPersistentData(tier);
             setMaxSessionsPerDay();
             
             updateUI();
@@ -1454,7 +1367,7 @@ permalink: /trade-tracker/
         
         document.querySelectorAll('input[type="number"], select').forEach(input => {
             input.addEventListener('input', updateUI);
-            input.addEventListener('change', saveState); 
+            input.addEventListener('change', saveState);
         });
 
         document.querySelectorAll('input[name="cost-type"]').forEach(radio => {
@@ -1468,7 +1381,7 @@ permalink: /trade-tracker/
         document.getElementById('cancel-license-btn').addEventListener('click', handleLicenseCancel);
         document.getElementById('license-key-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); 
+                e.preventDefault();
                 handleLicenseActivation();
             }
         });
@@ -1476,67 +1389,56 @@ permalink: /trade-tracker/
         document.getElementById('download-history').addEventListener('click', downloadTradeHistory);
         logoutLicenseBtn.addEventListener('click', logoutLicense);
 
-
         startSessionBtn.addEventListener('click', async () => {
             const selectedTier = subscriptionTierSelect.value;
             
             if (selectedTier !== tier) {
                 alert(`Tier mismatch detected. Current active tier is **${tier}**. Please use the subscription tier dropdown to select your active tier.`);
                 updateUI();
-                return; 
+                return;
             }
 
-            // CHECK COOLDOWN FOR CURRENT ACTIVE TIER
             if (isTierInCooldown(tier)) {
                 alert(`Session is in severe halt cooldown for the **${tier} Tier**. Wait for the timer to expire.`);
                 return;
             }
             
-            // TIER LIMIT COOLDOWN CHECK: Check if the *next* session start would exceed the limit.
             const currentSessionCount = tierDataStore[tier].sessionCount;
             if (tier !== 'Unlimited' && currentSessionCount >= maxSessionsPerDay) {
-                imposeTierLimitCooldown(); // Imposes cooldown, logs, and returns (STOP)
+                imposeTierLimitCooldown();
                 updateUI();
-                return; 
+                return;
             }
 
-            // --- Start Session Logic ---
-            
-            // 1. Lock-in Session Parameters
             sessionInitialCapital = parseFloat(initialCapitalInput.value);
             sessionTargetProfit = parseFloat(targetProfitInput.value);
             sessionMaxDailyLossPercent = parseFloat(document.getElementById('max-daily-loss').value);
             sessionMaxDrawdown = parseFloat(document.getElementById('max-drawdown').value);
 
-            // 2. Reset Dynamic Session State Variables (based on what's in the tierDataStore[tier])
-            loadTierPersistentData(tier); // Ensure capital and derived stats are correctly loaded/reset on start
+            loadTierPersistentData(tier);
 
-            // 3. Increment Global Session Count and Set Status
-            // Increment the session count in the active tier's slot - FIXED: Directly increment in tierDataStore
             tierDataStore[tier].sessionCount++;
             sessionStatus = 'STARTED';
 
-            // 4. Log the initial state as a "Trade #0" entry
             const activeTradeHistory = tierDataStore[tier].tradeHistory;
             if (activeTradeHistory.length === 0 || activeTradeHistory[activeTradeHistory.length-1].result !== 'START') {
                  tradeHistory.push({
-                    id: 0, // Set ID to 0 for start log
+                    id: 0,
                     cost: 0.00,
                     result: 'START',
                     pnl: 0.00,
                     capitalAfter: currentCapital,
                     timestamp: new Date().toISOString()
                 });
-                tradeCount = 0; // Trade count starts at 0 for trade #1
+                tradeCount = 0;
             }
 
-            updateUI(); 
+            updateUI();
         });
 
         logWinBtn.addEventListener('click', logWin);
         logLossBtn.addEventListener('click', logLoss);
         
-        // --- Download Functionality (No Change) ---
         function downloadTradeHistory() {
             if (tier === 'Free') {
                 alert("Download is not available in the Free Tier. Please upgrade to Pro or Unlimited.");
@@ -1551,10 +1453,8 @@ permalink: /trade-tracker/
 
             const header = ["Trade #", "Date/Time", "Cost", "Result", "P&L", "Capital After (Currency)", "Next Cost"];
             
-            // Get all trades except the very first one if it's a START entry for P&L tracking
             const tradesForCSV = historyToDownload.filter(trade => trade.result !== 'START');
 
-            // Map trades to CSV rows
             const csvRows = tradesForCSV.map(trade => [
                     trade.id,
                     trade.timestamp,
@@ -1562,10 +1462,9 @@ permalink: /trade-tracker/
                     trade.result,
                     trade.pnl.toFixed(2),
                     trade.capitalAfter.toFixed(2),
-                    '---' // Placeholder for Next Cost
+                    '---'
                 ]);
 
-            // Fix the Next Cost column by looking ahead in the original history array
             for(let i = 0; i < csvRows.length; i++) {
                 const currentTradeId = csvRows[i][0];
                 const nextTrade = historyToDownload.find(t => t.id === currentTradeId + 1);
@@ -1573,7 +1472,6 @@ permalink: /trade-tracker/
                 if (nextTrade) {
                     csvRows[i][6] = nextTrade.cost.toFixed(2);
                 } else if (i === csvRows.length - 1) {
-                     // Last logged trade shows the current calculated next cost
                      csvRows[i][6] = calculateNextTradeCost().toFixed(2);
                 }
             }
@@ -1598,19 +1496,16 @@ permalink: /trade-tracker/
             alert(`Trade history downloaded as ASTRONuri_Trade_Log_${dateStr}_${tier}.csv`);
         }
 
-
         // --- Initialization ---
         function init() {
-            loadState(); 
+            loadState();
             setMaxSessionsPerDay(tier);
             
             sessionInitialCapital = parseFloat(initialCapitalInput.value);
-            // Dynamic capital is loaded via loadTierPersistentData(tier) inside loadState()
             
             updateUI();
             
-            // Run update UI every minute to check for cooldown expiration
-            setInterval(updateUI, 60000); 
+            setInterval(updateUI, 60000);
         }
 
         init();
