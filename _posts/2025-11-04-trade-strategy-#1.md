@@ -4,6 +4,11 @@ date: 2025-11-04
 layout: post
 categories: [strategy, trading]
 tags: [AO, SMA, binary, momentum, expiry]
+
+---
+
+Awesome Oscillator (AO) + Simple Moving Average (SMA) for 10-second expiry trades. 
+
 ---
 
 ![Awesome Oscillator Strategy](https://thesecretmindset.com/wp-content/uploads/2020/06/Awesome-Oscillator-Trading-Strategy.png)
