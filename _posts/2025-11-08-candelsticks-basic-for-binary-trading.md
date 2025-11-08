@@ -98,5 +98,3 @@ Each candlestick represents **price movement over a specific time period** (e.g.
 ## 📌 Final Thoughts
 
 Candlesticks are more than visuals—they're **psychological footprints** of market participants. Mastering them gives you an edge in timing entries, spotting reversals, and managing risk.
-
-> Want this guide as a printable PDF or integrated into your GitHub dashboard? Let’s build it together.
