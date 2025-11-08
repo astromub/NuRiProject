@@ -2,8 +2,9 @@
 title: "Trade Strategy #3: Candlestick Basics for Binary Traders"
 date: 2025-11-07
 layout: post
-categories: [education, trading]
+categories: beginner-guide
 tags: [candlestick, binary, support resistance, bullish, bearish]
+image: /assets/images/astronuri.png
 ---
 
 # 🕯️ Candlestick Basics for Binary Traders
